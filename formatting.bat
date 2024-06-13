@@ -44,12 +44,13 @@ set keepfiles=""
 for %%A in (!file_list!) do (
     for /f "delims=_" %%B in ("%%A") do (
         set "keepfiles=!keepfiles! %%B"
-        echo %%B
     )
 )
 
 rem Extract the directory path from the selected ZIP file
 for %%A in ("!zip_file!") do set "destination=%%~dpA"
+
+cls
 
 rem Use PowerShell to unzip the file (example using Expand-Archive)
 powershell -Command "Expand-Archive -Force -Path '!zip_file!' -DestinationPath '!destination!'"
@@ -58,25 +59,21 @@ rem remove files
 
 cls
 
-echo 请稍等。。。
-for /r %%F in ("*") do (
-    echo %%F | find ".docx" >nul
-    if not errorlevel 1 (
-        set "deleteFile=true"
+echo 请稍等（约1-2分钟）
+for /r %%F in (*.docx) do (
+      set "deleteFile=true"
+      for %%K in (!keepfiles!) do (
+          echo %%F | find "%%K" >nul
+          if not errorlevel 1 (
+              set "deleteFile=false"
+          )
+      )
 
-        for %%K in (!keepfiles!) do (
-            echo %%F | find "%%K" >nul
-            if not errorlevel 1 (
-                set "deleteFile=false"
-            )
-        )
-        rem Delete the file if deleteFile is still true
-        if "!deleteFile!"=="true" (
-            del "%%F"
-        )
-    )
+      rem Delete the file if deleteFile is still true
+      if "!deleteFile!"=="true" (
+          del "%%F"
+      )
 )
-
 
 endlocal
 pause
